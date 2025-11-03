@@ -1,21 +1,90 @@
 
-// Aquí irá tu código JavaScript
-console.log('Interfaz de Operaciones Básicas lista para programar! ➕');
+// Variables globales
+let currentOperation = 'addition';
+let gameMode = 'practice';
+let numberRange = 10;
+let score = 0;
+let lives = 3;
+let currentQuestionNumber = 0;
+let totalQuestions = 10;
+let timerSeconds = 0;
+let timerInterval;
+let streak = 0;
+let correctAnswers = 0;
+let incorrectAnswers = 0;
+let startTime;
 
-// Elementos principales disponibles:
+// Configuración del juego
+const operations = {
+    addition: {
+        symbol: '+',
+        calculate: (a, b) => a + b,
+        name: 'Suma'
+    },
+    subtraction: {
+        symbol: '−',
+        calculate: (a, b) => a - b,
+        name: 'Resta'
+    },
+    multiplication: {
+        symbol: '×',
+        calculate: (a, b) => a * b,
+        name: 'Multiplicación'
+    },
+    division: {
+        symbol: '÷',
+        calculate: (a, b) => a / b,
+        name: 'División'
+    }
+};
 
-// Header
-// - backBtn: Botón volver
-// - currentLevel: Nivel actual
-// - totalScore: Puntuación total
-// - livesDisplay: Contenedor de vidas (corazones)
+// Función para generar problema
+function generateProblem() {
+    let num1, num2;
+    
+    switch(currentOperation) {
+        case 'addition':
+        case 'multiplication':
+            num1 = Math.floor(Math.random() * numberRange) + 1;
+            num2 = Math.floor(Math.random() * numberRange) + 1;
+            break;
+        case 'subtraction':
+            num1 = Math.floor(Math.random() * numberRange) + 1;
+            num2 = Math.floor(Math.random() * num1) + 1;
+            break;
+        case 'division':
+            num2 = Math.floor(Math.random() * (numberRange/2)) + 1;
+            num1 = num2 * (Math.floor(Math.random() * numberRange/2) + 1);
+            break;
+    }
+    
+    return {
+        num1: num1,
+        num2: num2,
+        answer: operations[currentOperation].calculate(num1, num2)
+    };
+}
 
-// Operation Selector
-// - Operation buttons: data-operation (addition, subtraction, multiplication, division)
-// - rangeSlider: Slider para rango de números
-// - rangeValue: Valor del rango
-// - Game mode buttons: data-mode (practice, timed, challenge)
-// - startGameBtn: Botón iniciar juego
+// Función para iniciar juego
+function startGame() {
+    score = 0;
+    lives = 3;
+    currentQuestionNumber = 0;
+    streak = 0;
+    correctAnswers = 0;
+    incorrectAnswers = 0;
+    startTime = Date.now();
+    
+    updateLives();
+    updateScore();
+    if (gameMode === 'timed') {
+        startTimer();
+    }
+    
+    showNextQuestion();
+    document.getElementById('startGameBtn').style.display = 'none';
+    document.getElementById('gameArea').style.display = 'block';
+}
 
 // Game Area
 // - currentQuestion: Número de pregunta actual

@@ -1,15 +1,16 @@
 
+// Función para alternar entre formularios
+function toggleForm() {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    if (!loginForm || !registerForm) return;
+    loginForm.classList.toggle('active');
+    registerForm.classList.toggle('active');
+}
+
 // Login/Registro: inicialización y persistencia básica
 document.addEventListener('DOMContentLoaded', () => {
     let selectedAge = null;
-
-    function toggleForm() {
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        if (!loginForm || !registerForm) return;
-        loginForm.classList.toggle('active');
-        registerForm.classList.toggle('active');
-    }
 
     // Selección de edad
     document.querySelectorAll('.age-option').forEach(option => {
@@ -70,6 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
+            if (password.length < 6) {
+                alert('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
             const users = getUsers();
             if (users.find(u => u.email === email)) { alert('Ya existe una cuenta con ese correo.'); return; }
             const newUser = { name, email, password, age: selectedAge };

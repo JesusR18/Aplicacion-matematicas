@@ -1,3 +1,13 @@
+// Redirección a login si no está logueado
+if (!localStorage.getItem('loggedUser')) {
+    if (!window.location.pathname.endsWith('login.html')) {
+        window.location.href = 'login.html';
+    }
+}
+    // Botón volver al menú
+    document.getElementById('backBtn')?.addEventListener('click', () => {
+        window.location.href = 'menu.html';
+    });
 
 // Geometría: inicialización segura
 document.addEventListener('DOMContentLoaded', () => {

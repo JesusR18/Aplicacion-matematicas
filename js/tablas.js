@@ -1,18 +1,20 @@
 
-// Variables globales
-let currentTable = 1;
-let currentDifficulty = 'easy';
-let score = 0;
-let questionCount = 0;
-let totalQuestions = 10;
-let correctCount = 0;
-let incorrectCount = 0;
-let timerSeconds = 0;
-let timerInterval;
-let bestTimes = {};
+// Tablas: inicialización segura
+document.addEventListener('DOMContentLoaded', () => {
+    // Variables globales
+    let currentTable = 1;
+    let currentDifficulty = 'easy';
+    let score = 0;
+    let questionCount = 0;
+    let totalQuestions = 10;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let timerSeconds = 0;
+    let timerInterval;
+    let bestTimes = {};
 
 // Generación de preguntas
-function generateQuestion() {
+    function generateQuestion() {
     const multiplier = Math.floor(Math.random() * 10) + 1;
     const correctAnswer = currentTable * multiplier;
     
@@ -68,47 +70,38 @@ function generateOptions(correctAnswer) {
 // - bestTime: Mejor tiempo
 // - tipText: Texto del consejo
 
-// Ejemplo: Cambiar entre modos de dificultad
-const difficultyBtns = document.querySelectorAll('.difficulty-btn');
-const inputMode = document.getElementById('inputMode');
-const optionsMode = document.getElementById('optionsMode');
+    // Ejemplo: Cambiar entre modos de dificultad
+    const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+    const inputMode = document.getElementById('inputMode');
+    const optionsMode = document.getElementById('optionsMode');
 
-difficultyBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        difficultyBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        const difficulty = this.dataset.difficulty;
-        
-        if (difficulty === 'easy') {
-            inputMode.style.display = 'none';
-            optionsMode.style.display = 'grid';
-        } else if (difficulty === 'medium' || difficulty === 'hard') {
-            inputMode.style.display = 'flex';
-            optionsMode.style.display = 'none';
-        }
-        
-        console.log('Modo de dificultad:', difficulty);
+    difficultyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            difficultyBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentDifficulty = this.dataset.difficulty || 'easy';
+            if (currentDifficulty === 'easy') {
+                if (inputMode) inputMode.style.display = 'none';
+                if (optionsMode) optionsMode.style.display = 'grid';
+            } else {
+                if (inputMode) inputMode.style.display = 'flex';
+                if (optionsMode) optionsMode.style.display = 'none';
+            }
+        });
     });
-});
 
 // Ejemplo: Seleccionar tabla
-const tableBtns = document.querySelectorAll('.table-btn');
-
-tableBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        tableBtns.forEach(b => b.classList.remove('selected'));
-        this.classList.add('selected');
-        
-        const table = this.dataset.table;
-        console.log('Tabla seleccionada:', table);
-        
-        // Aquí cargarías las preguntas de la tabla seleccionada
+    const tableBtns = document.querySelectorAll('.table-btn');
+    tableBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            tableBtns.forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            currentTable = parseInt(this.dataset.table) || 1;
+        });
     });
-});
 
 // Funciones principales
-function startGame() {
+    function startGame() {
     questionCount = 0;
     correctCount = 0;
     incorrectCount = 0;
@@ -118,7 +111,7 @@ function startGame() {
     updateStats();
 }
 
-function showQuestion() {
+    function showQuestion() {
     if (questionCount >= totalQuestions) {
         endGame();
         return;
@@ -129,30 +122,31 @@ function showQuestion() {
     document.getElementById('firstNumber').textContent = question.firstNumber;
     document.getElementById('secondNumber').textContent = question.secondNumber;
     
-    if (currentDifficulty === 'easy') {
-        document.getElementById('optionsMode').style.display = 'grid';
-        document.getElementById('inputMode').style.display = 'none';
-        
-        const optionsContainer = document.getElementById('optionsMode');
-        optionsContainer.innerHTML = '';
-        question.options.forEach(option => {
-            const button = document.createElement('button');
-            button.className = 'answer-option';
-            button.textContent = option;
-            button.onclick = () => checkAnswer(option);
-            optionsContainer.appendChild(button);
-        });
-    } else {
-        document.getElementById('optionsMode').style.display = 'none';
-        document.getElementById('inputMode').style.display = 'flex';
-        document.getElementById('answerInput').value = '';
-        document.getElementById('answerInput').focus();
-    }
+        if (currentDifficulty === 'easy') {
+            if (document.getElementById('optionsMode')) document.getElementById('optionsMode').style.display = 'grid';
+            if (document.getElementById('inputMode')) document.getElementById('inputMode').style.display = 'none';
+            const optionsContainer = document.getElementById('optionsMode');
+            if (optionsContainer) {
+                optionsContainer.innerHTML = '';
+                question.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.className = 'answer-option';
+                    button.textContent = option;
+                    button.onclick = () => checkAnswer(option);
+                    optionsContainer.appendChild(button);
+                });
+            }
+        } else {
+            if (document.getElementById('optionsMode')) document.getElementById('optionsMode').style.display = 'none';
+            if (document.getElementById('inputMode')) document.getElementById('inputMode').style.display = 'flex';
+            const answerInput = document.getElementById('answerInput');
+            if (answerInput) { answerInput.value = ''; answerInput.focus(); }
+        }
     
     updateProgress();
 }
 
-function checkAnswer(userAnswer) {
+    function checkAnswer(userAnswer) {
     const firstNumber = parseInt(document.getElementById('firstNumber').textContent);
     const secondNumber = parseInt(document.getElementById('secondNumber').textContent);
     const correctAnswer = firstNumber * secondNumber;
@@ -251,32 +245,30 @@ function endGame() {
     `;
 }
 
-// Event Listeners para los botones de dificultad y tabla
-document.querySelectorAll('.difficulty-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        currentDifficulty = this.dataset.difficulty;
-        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
-
-document.querySelectorAll('.table-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        currentTable = parseInt(this.dataset.table);
-        document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected'));
-        this.classList.add('selected');
-    });
-});
-
 // Event Listener para el input en modo medio/difícil
-document.getElementById('answerInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        checkAnswer(this.value);
-    }
+const answerInputEl = document.getElementById('answerInput');
+if (answerInputEl) answerInputEl.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') checkAnswer(this.value);
 });
 
-// Inicialización
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('[data-table="1"]').click();
-    document.querySelector('[data-difficulty="easy"]').click();
+    // Event listeners para botones estáticos de opciones (si existen en el HTML)
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', () => checkAnswer(btn.dataset.answer));
+    });
+
+    // Botones de acción
+    document.getElementById('skipBtn')?.addEventListener('click', () => {
+        // Tratar como incorrecta y avanzar
+        handleIncorrectAnswer();
+    });
+    document.getElementById('checkBtn')?.addEventListener('click', () => {
+        const answerInput = document.getElementById('answerInput');
+        if (answerInput) checkAnswer(answerInput.value);
+    });
+
+    // Inicialización segura
+    const table1 = document.querySelector('[data-table="1"]');
+    if (table1) table1.click();
+    const easyBtn = document.querySelector('[data-difficulty="easy"]');
+    if (easyBtn) easyBtn.click();
 });

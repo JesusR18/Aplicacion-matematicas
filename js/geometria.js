@@ -1,19 +1,22 @@
 
-// Variables globales
-let currentMode = 'draw';
-let selectedShape = null;
-let selectedColor = '#000000';
-let shapes = [];
-let undoStack = [];
-let isDragging = false;
-let dragStart = { x: 0, y: 0 };
+// Geometría: inicialización segura
+document.addEventListener('DOMContentLoaded', () => {
+    // Variables globales
+    let currentMode = 'draw';
+    let selectedShape = null;
+    let selectedColor = '#000000';
+    let shapes = [];
+    let undoStack = [];
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
 
-// Canvas setup
-const canvas = document.getElementById('geometryCanvas');
-const ctx = canvas.getContext('2d');
+    // Canvas setup
+    const canvas = document.getElementById('geometryCanvas');
+    if (!canvas) return; // No estamos en la página de geometría
+    const ctx = canvas.getContext('2d');
 
-// Configuración de formas
-const shapeConfigs = {
+    // Configuración de formas
+    const shapeConfigs = {
     triangle: {
         sides: 3,
         angles: '60°',
@@ -56,19 +59,18 @@ const shapeConfigs = {
         getArea: size => ((3 * Math.sqrt(3)) / 2) * size * size,
         formula: 'A = (3√3 × s²) / 2'
     }
-};
-const canvas = document.getElementById('geometryCanvas');
-const ctx = canvas.getContext('2d');
+    };
 
-// Funciones de dibujo
-function drawShape(shape, position, size, rotation = 0, color = selectedColor) {
+    // Funciones de dibujo
+    function drawShape(shape, position, size, rotation = 0, color = selectedColor) {
     ctx.save();
     ctx.translate(position.x, position.y);
     ctx.rotate(rotation * Math.PI / 180);
     ctx.beginPath();
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
-    ctx.lineWidth = parseInt(document.getElementById('borderWidth').value);
+        const borderWidthEl = document.getElementById('borderWidth');
+        ctx.lineWidth = borderWidthEl ? parseInt(borderWidthEl.value) : 2;
 
     switch(shape) {
         case 'triangle':
@@ -118,7 +120,7 @@ function drawCircle(radius) {
 function drawPolygon(sides, size) {
     const angle = (Math.PI * 2) / sides;
     ctx.moveTo(size/2, 0);
-    for (let i = 1; i <= sides; i++) {
+    for (let i = 1; i < sides; i++) {
         ctx.lineTo(
             Math.cos(angle * i) * size/2,
             Math.sin(angle * i) * size/2
@@ -127,26 +129,24 @@ function drawPolygon(sides, size) {
     ctx.closePath();
 }
 
-function drawGrid() {
-    if (!document.getElementById('gridToggle').checked) return;
-    
-    ctx.strokeStyle = '#e9ecef';
-    ctx.lineWidth = 1;
-    
-    for (let x = 0; x <= canvas.width; x += 20) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
+    function drawGrid() {
+        const gridToggle = document.getElementById('gridToggle');
+        if (!gridToggle || !gridToggle.checked) return;
+        ctx.strokeStyle = '#e9ecef';
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= canvas.width; x += 20) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y <= canvas.height; y += 20) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
     }
-    
-    for (let y = 0; y <= canvas.height; y += 20) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-}
 
 // Funciones de manipulación de canvas
 function clearCanvas() {
@@ -182,123 +182,114 @@ function updateInfo(shape, size) {
 }
 
 // Event Listeners
-canvas.addEventListener('mousedown', (e) => {
-    if (currentMode !== 'draw' || !selectedShape) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    isDragging = true;
-    dragStart = { x, y };
-});
-
-canvas.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    clearCanvas();
-    shapes.forEach(s => drawShape(s.shape, s.position, s.size, s.rotation, s.color));
-    
-    const size = parseInt(document.getElementById('sizeSlider').value);
-    const rotation = parseInt(document.getElementById('rotationSlider').value);
-    drawShape(selectedShape, { x, y }, size, rotation);
-});
-
-canvas.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const size = parseInt(document.getElementById('sizeSlider').value);
-    const rotation = parseInt(document.getElementById('rotationSlider').value);
-    
-    shapes.push({
-        shape: selectedShape,
-        position: { x, y },
-        size: size,
-        rotation: rotation,
-        color: selectedColor
+    canvas.addEventListener('mousedown', (e) => {
+        if (currentMode !== 'draw' || !selectedShape) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        isDragging = true;
+        dragStart = { x, y };
     });
-    
-    updateInfo(selectedShape, size);
-    isDragging = false;
-});
 
-// Event Listeners para los controles
-document.querySelectorAll('[data-shape]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        selectedShape = btn.dataset.shape;
-        document.querySelectorAll('[data-shape]').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        
-        const size = parseInt(document.getElementById('sizeSlider').value);
-        updateInfo(selectedShape, size);
-    });
-});
-
-document.querySelectorAll('[data-color]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        selectedColor = btn.dataset.color;
-        document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-    });
-});
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-    undoStack.push([...shapes]);
-    shapes = [];
-    clearCanvas();
-});
-
-document.getElementById('undoBtn').addEventListener('click', () => {
-    if (undoStack.length > 0) {
-        shapes = undoStack.pop();
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
         clearCanvas();
         shapes.forEach(s => drawShape(s.shape, s.position, s.size, s.rotation, s.color));
-    }
-});
+        const sizeEl = document.getElementById('sizeSlider');
+        const rotationEl = document.getElementById('rotationSlider');
+        const size = sizeEl ? parseInt(sizeEl.value) : 50;
+        const rotation = rotationEl ? parseInt(rotationEl.value) : 0;
+        drawShape(selectedShape, { x, y }, size, rotation);
+    });
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.download = 'mi-dibujo-geometrico.png';
-    link.href = canvas.toDataURL();
-    link.click();
-});
+    canvas.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const sizeEl = document.getElementById('sizeSlider');
+        const rotationEl = document.getElementById('rotationSlider');
+        const size = sizeEl ? parseInt(sizeEl.value) : 50;
+        const rotation = rotationEl ? parseInt(rotationEl.value) : 0;
+        shapes.push({
+            shape: selectedShape,
+            position: { x, y },
+            size: size,
+            rotation: rotation,
+            color: selectedColor
+        });
+        updateInfo(selectedShape, size);
+        isDragging = false;
+    });
 
-document.getElementById('gridToggle').addEventListener('change', () => {
-    clearCanvas();
-    shapes.forEach(s => drawShape(s.shape, s.position, s.size, s.rotation, s.color));
-});
+// Event Listeners para los controles
+    document.querySelectorAll('[data-shape]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedShape = btn.dataset.shape;
+            document.querySelectorAll('[data-shape]').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            const sizeEl = document.getElementById('sizeSlider');
+            const size = sizeEl ? parseInt(sizeEl.value) : 50;
+            updateInfo(selectedShape, size);
+        });
+    });
 
-// Modos de juego
-document.querySelectorAll('[data-mode]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        currentMode = btn.dataset.mode;
-        document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Configurar interfaz según el modo
-        switch(currentMode) {
-            case 'draw':
-                // Modo dibujo libre
-                break;
-            case 'learn':
-                // Modo aprendizaje
-                startLearningMode();
-                break;
-            case 'quiz':
-                // Modo quiz
-                startQuizMode();
-                break;
+    document.querySelectorAll('[data-color]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedColor = btn.dataset.color;
+            document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        });
+    });
+
+    document.getElementById('clearBtn')?.addEventListener('click', () => {
+        undoStack.push([...shapes]);
+        shapes = [];
+        clearCanvas();
+    });
+
+    document.getElementById('undoBtn')?.addEventListener('click', () => {
+        if (undoStack.length > 0) {
+            shapes = undoStack.pop();
+            clearCanvas();
+            shapes.forEach(s => drawShape(s.shape, s.position, s.size, s.rotation, s.color));
         }
     });
-});
 
-// Inicialización
-clearCanvas();
+    document.getElementById('saveBtn')?.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'mi-dibujo-geometrico.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+
+    document.getElementById('gridToggle')?.addEventListener('change', () => {
+        clearCanvas();
+        shapes.forEach(s => drawShape(s.shape, s.position, s.size, s.rotation, s.color));
+    });
+
+// Modos de juego
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentMode = btn.dataset.mode;
+            document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            switch (currentMode) {
+                case 'draw':
+                    break;
+                case 'learn':
+                    if (typeof startLearningMode === 'function') startLearningMode();
+                    break;
+                case 'quiz':
+                    if (typeof startQuizMode === 'function') startQuizMode();
+                    break;
+            }
+        });
+    });
+
+    // Inicialización
+    clearCanvas();
+});
